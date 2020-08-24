@@ -5,3 +5,4 @@ readRIT.py
 *.jpg
 *.png
 unet-*
+unet*
