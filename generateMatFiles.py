@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 from sklearn import decomposition, datasets
 from sklearn.preprocessing import StandardScaler
 from scipy.io import loadmat, savemat
-from readRIT import getTrainData
 
-nComp = 5
+nComp = 1
 dataset = loadmat('rit18_data.mat')
 
 #Load Training Data and Labels
@@ -31,7 +30,7 @@ pca = decomposition.PCA(n_components=nComp)
 red = pca.fit_transform(val_data)
 red = red.reshape((nComp,8833,-1))
 dataset['val_data'] = np.concatenate([red, val_mask.reshape((1, val_mask.shape[0], -1))])
-print(dataset['val_data'].shape)
+print('New shape val:', dataset['val_data'].shape)
 
 #Load Test Data
 test_data = dataset['test_data']
@@ -43,6 +42,6 @@ pca = decomposition.PCA(n_components=nComp)
 red = pca.fit_transform(test_data)
 red = red.reshape((nComp,12446,-1))
 dataset['test_data'] = np.concatenate([red, test_mask.reshape((1, test_mask.shape[0], -1))])
-print(dataset['test_data'].shape)
+print('New shape test:', dataset['test_data'].shape)
 
-savemat('5band.mat' , dataset)
+savemat('1band.mat' , dataset)

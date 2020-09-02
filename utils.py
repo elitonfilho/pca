@@ -44,10 +44,12 @@ class TrainDataset(Dataset):
     @staticmethod
     def pca(data, ncomp):
         shape = data.shape
+        print(shape)
         data = data.reshape(-1, data.shape[0])
         pca = decomposition.PCA(n_components=ncomp)
         red = pca.fit_transform(data)
         red = red.reshape((ncomp, shape[-2], -1))
+        print(red.shape)
         return red
 
     @staticmethod

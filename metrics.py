@@ -18,15 +18,13 @@ class Metrics():
         freq = hist.sum(axis=1) / hist.sum()
         fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
         cls_iu = dict(zip(range(self.nclass), iu))
-        return (
-            {
-                "Overall Acc: \t": acc,
-                "Mean Acc : \t": acc_cls,
-                "FreqW Acc : \t": fwavacc,
-                "Mean IoU : \t": mean_iu,
-            },
-            cls_iu,
-        )
+        return {
+                "Overall Acc:": acc,
+                "Mean Acc:": acc_cls,
+                "FreqW Acc:": fwavacc,
+                "Mean IoU:": mean_iu,
+                "Classes": cls_iu
+                }
 
     @staticmethod
     def use_mask(mask, lpred, ltrue):
