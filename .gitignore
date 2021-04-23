@@ -6,3 +6,4 @@ readRIT.py
 *.png
 unet-*
 unet*
+data_source/
