@@ -4,6 +4,7 @@ from torchvision.transforms import Compose, ToTensor, Normalize, ToPILImage
 from PIL import Image
 from model import *
 from utils import *
+from landcover_dataset import LandCoverDataset
 from metrics import Metrics
 import matplotlib.pyplot as plt
 import cv2
@@ -23,45 +24,56 @@ def save_img(img, pred, label, ch, counter):
         plt.close(fig=fig)
         lc += 1
 
+def plot_figs(imgs, preds, masks):
+    pass
+
 
 
 if __name__ == "__main__":
-    nch = 1
-    counter = 0
-    mat_path = f'rit18_data.mat'
-    model_path= f'output/train/unet{nch}_250'
-    unet_resnet = UNetResNet(num_classes=19, in_channels=nch)
+    n_class = 7
+    n_ch = 8
+    bs = 3
+    model_path= f'trained/t1.pt'
+    unet_resnet = UNetResNet(num_classes=7, in_channels=n_ch)
     
     pretrained_model = torch.load(model_path)
-    for name, tensor in pretrained_model.items():
-        unet_resnet.state_dict()[name].copy_(tensor)
+    unet_resnet.load_state_dict(pretrained_model)
+    # for name, tensor in pretrained_model.items():
+    #     unet_resnet.state_dict()[name].copy_(tensor)
 
-    val_dataset = TrainDataset(typeD='val', pca=True, mat_path=mat_path, ncomp = nch)
-    val_loader = torch.utils.data.DataLoader(val_dataset, num_workers=1, batch_size=10, shuffle=False)
+    val_dataset = LandCoverDataset(root='data_source/8-la.npy')
+    val_loader = torch.utils.data.DataLoader(val_dataset, num_workers=4, batch_size=3, shuffle=False)
 
     unet_resnet.cuda()
     unet_resnet.eval()
     softmax2d = torch.nn.Softmax2d()
 
-    metric = Metrics(nbands=nch)
-    for img, mask , label in val_loader:
+    metric = Metrics(nbands=n_ch)
+    for img, mask in val_loader:
 
         with torch.no_grad():
+
             pred = unet_resnet(img.float().cuda())
             pred = softmax2d(pred)
             pred = pred.argmax(1)
 
             pred = pred.data.cpu().numpy()
             mask = mask.data.cpu().numpy()
-            label = label.data.cpu().numpy()
             img = img.clone().data.cpu().numpy()
 
-            metric.update(pred, label)
+            metric.update(pred, mask)
 
-            save_img(img.astype(np.uint8), pred.astype(np.uint8), label.astype(np.uint8), nch, counter)
-            counter+=1
+            fig, ax = plt.subplots(3,bs)
 
-    fig, ax = plt.subplots(3,5)
+            print(pred.shape, mask.shape, img.shape)
+
+            for i in range(bs):
+                ax[0,i].imshow(mask[i,...].squeeze())
+                ax[1,i].imshow(pred[i,...].squeeze())
+                ax[2,i].imshow(img[i,0,...].squeeze())
+            plt.show()
+
+            # save_img(img.astype(np.uint8), pred.astype(np.uint8), label.astype(np.uint8), nch, counter)
 
     print(metric.metrics(mask, pred, label))
 

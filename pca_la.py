@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 
 root = Path(r'D:\datasets\landcover\val')
-nComp = 8
+nComp = 'original'
 results = []
 
 for x in root.iterdir():
@@ -19,15 +19,15 @@ print('Original shape:', imgs_np.shape)
 to_pca = imgs_np[:,10:19,:,:]
 mask = imgs_np[:,8,:,:]
 mask = np.expand_dims(mask, axis=1)
-to_pca = to_pca.reshape(-1, to_pca.shape[1])
+# to_pca = to_pca.reshape(-1, to_pca.shape[1])
 
-pca = decomposition.PCA(n_components=nComp)
-red = pca.fit_transform(to_pca)
+# pca = decomposition.PCA(n_components=nComp)
+# red = pca.fit_transform(to_pca)
 
-red = red.reshape(-1, nComp, 256, 256)
-print('After PCA shape:', red.shape)
+# red = red.reshape(-1, nComp, 256, 256)
+# print('After PCA shape:', red.shape)
 
-red = np.append(red, mask, axis=1)
+red = np.append(to_pca, mask, axis=1)
 print('After appending mask:', red.shape)
 
-np.save(r'C:\Users\eliton\Documents\ml\pca\datasets\8-la.npy', red)
+np.save(f'data_source/{nComp}-la.npy', red)

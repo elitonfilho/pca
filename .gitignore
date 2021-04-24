@@ -7,3 +7,4 @@ readRIT.py
 unet-*
 unet*
 data_source/
+trained/
