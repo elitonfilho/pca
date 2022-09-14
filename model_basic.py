@@ -1,37 +1,36 @@
 # From https://github.com/AntixK/PyTorch-VAE/blob/a6896b944c918dd7030e7d795a8c13e5c6345ec7/models/vanilla_vae.py
 
 import torch
-from torch import nn
-from torch.nn import functional as F
-from torch import Tensor
+from torch import Tensor, nn
 
-class VanillaVAE(nn.Module):
-
+class VanillaAE(nn.Module):
+    '''Simple AE implementation that does not reduce input spatial shape.
+    In other words, for input images of shape (cin, win, hin), the bottleneck has shape (hidden_dims[-1], w_in, h_in)
+    '''
 
     def __init__(self,
-                 in_channels: int,
-                 latent_dim: int,
-                 hidden_dims: list = None,
+                 inch: int,
+                 hidden_dims: list[int] = None,
+                 outch=9,
                  **kwargs) -> None:
-        super(VanillaVAE, self).__init__()
 
-        self.latent_dim = latent_dim
-        inch = in_channels
+        super(VanillaAE, self).__init__()
 
         modules = []
+
         if hidden_dims is None:
-            hidden_dims = [8,4,2,1]
+            hidden_dims = [8, 4, 2, 1]
 
         # Build Encoder
-        for h_dim in hidden_dims:
+        for hch in hidden_dims:
             modules.append(
                 nn.Sequential(
-                    nn.Conv2d(in_channels, out_channels=h_dim,
-                              kernel_size = 3, stride = 1, padding = 1),
-                    nn.BatchNorm2d(h_dim),
+                    nn.Conv2d(inch, hch,
+                              kernel_size=3, stride=1, padding=1),
+                    nn.BatchNorm2d(hch),
                     nn.LeakyReLU())
             )
-            in_channels = h_dim
+            inch = hch
 
         self.encoder = nn.Sequential(*modules)
 
@@ -44,10 +43,10 @@ class VanillaVAE(nn.Module):
             modules.append(
                 nn.Sequential(
                     nn.Conv2d(hidden_dims[i],
-                                       hidden_dims[i + 1],
-                                       kernel_size=3,
-                                       stride = 1,
-                                       padding=1),
+                              hidden_dims[i + 1],
+                              kernel_size=3,
+                              stride=1,
+                              padding=1),
                     nn.BatchNorm2d(hidden_dims[i + 1]),
                     nn.LeakyReLU())
             )
@@ -55,12 +54,12 @@ class VanillaVAE(nn.Module):
         self.decoder = nn.Sequential(*modules)
 
         self.final_layer = nn.Sequential(
-                            nn.Conv2d(hidden_dims[-1],
-                                               inch,
-                                               kernel_size=3,
-                                               stride=1,
-                                               padding=1),
-                            nn.Tanh())
+            nn.Conv2d(hidden_dims[-1],
+                      outch,
+                      kernel_size=3,
+                      stride=1,
+                      padding=1),
+            nn.Tanh())
 
     def encode(self, input: Tensor):
         """
@@ -88,8 +87,8 @@ class VanillaVAE(nn.Module):
         x = self.final_layer(x)
         return x
 
+
 if __name__ == '__main__':
-    model = VanillaVAE(9,256*256)
-    # v = torch.zeros((1,8,256,256))
-    # summary(model.cuda(), (9,256,256))
-    # # model(v)
+    model = VanillaAE(2)
+    v = torch.zeros((1,2,256,256))
+    print(model(v).shape)

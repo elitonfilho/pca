@@ -1,32 +1,35 @@
-# From https://github.com/AntixK/PyTorch-VAE/blob/a6896b944c918dd7030e7d795a8c13e5c6345ec7/models/vanilla_vae.py
-
 import torch
 from torch import nn
 from torch.nn import functional as F
 from torch import Tensor
-from torchsummary import summary
+# from torchsummary import summary
 
 class VanillaVAE(nn.Module):
-
+    ''' Vanilla VAE implementation from https://github.com/AntixK/PyTorch-VAE/blob/a6896b944c918dd7030e7d795a8c13e5c6345ec7/models/vanilla_vae.py \\
+    Has some small tweaks to work with custom shape from the employed dataset
+    '''
 
     def __init__(self,
                  in_channels: int,
                  latent_dim: int,
-                 hidden_dims: list = None,
+                 hidden_dims: list[int] = None,
+                 out_channels: int = 9,
                  **kwargs) -> None:
+
         super(VanillaVAE, self).__init__()
 
         self.latent_dim = latent_dim
 
         modules = []
         if hidden_dims is None:
-            hidden_dims = [32, 64, 128, 256, 512, 1024]
+            # hidden_dims = [32, 64, 128, 256, 512, 1024]
+            hidden_dims = [16,32,64,128,256,512,1024]
 
         # Build Encoder
         for h_dim in hidden_dims:
             modules.append(
                 nn.Sequential(
-                    nn.Conv2d(in_channels, out_channels=h_dim,
+                    nn.Conv2d(in_channels, h_dim,
                               kernel_size= 3, stride= 2, padding  = 1),
                     nn.BatchNorm2d(h_dim),
                     nn.LeakyReLU())
@@ -34,8 +37,8 @@ class VanillaVAE(nn.Module):
             in_channels = h_dim
 
         self.encoder = nn.Sequential(*modules)
-        self.fc_mu = nn.Linear(hidden_dims[-1]*16, latent_dim)
-        self.fc_var = nn.Linear(hidden_dims[-1]*16, latent_dim)
+        self.fc_mu = nn.Linear(hidden_dims[-1]*4, latent_dim)
+        self.fc_var = nn.Linear(hidden_dims[-1]*4, latent_dim)
 
 
         # Build Decoder
@@ -71,7 +74,7 @@ class VanillaVAE(nn.Module):
                                                output_padding=1),
                             nn.BatchNorm2d(hidden_dims[-1]),
                             nn.LeakyReLU(),
-                            nn.Conv2d(hidden_dims[-1], out_channels= 3,
+                            nn.Conv2d(hidden_dims[-1], out_channels,
                                       kernel_size= 3, padding= 1),
                             nn.Tanh())
 
@@ -174,5 +177,6 @@ class VanillaVAE(nn.Module):
         return self.forward(x)[0]
 
 if __name__ == '__main__':
-    model = VanillaVAE(3,256*256)
-    summary(model, (3,256,256))
+    model = VanillaVAE(1,256).cuda()
+    data = torch.ones((1,1,256,256)).cuda()
+    # summary(model, (1,256,256))
