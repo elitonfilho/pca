@@ -14,20 +14,18 @@ class LandCoverDataset(Dataset):
         self.splits = np.split(data, data.shape[0], axis=0)[:100]
 
     def __getitem__(self, i):
-        data = self.splits[i][:,:-1,...].squeeze()
-        mask = self.splits[i][:,-1,...].squeeze()
+        data = self.splits[i][..., :-1].squeeze()
+        mask = self.splits[i][..., -1].squeeze()
         return tensor(data), tensor(mask)
 
     def __len__(self):
         return len(self.splits)
 
 if __name__ == '__main__':
-    dataset = LandCoverDataset(r'C:\Users\eliton\Documents\ml\pca\dataSourceV2\original.npy')
-    minV = 10000
-    maxV = -10000
-    for img1, img2 in dataset:
-        # print(img1.shape, img2.shape)
-        # print(torch.min(img1), torch.max(img1))
-        maxV = max(maxV, torch.max(img2))
-        minV = min(minV, torch.min(img2))
+    dataset = LandCoverDataset(r'/home/users/jeafilho/dataset/original1.npy')
+    minV = float('inf')
+    maxV = float('-inf')
+    for data, mask in dataset:
+        maxV = max(maxV, torch.max(data))
+        minV = min(minV, torch.min(data))
     print(minV, maxV)
