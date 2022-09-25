@@ -14,7 +14,7 @@ class LandCoverDataset(Dataset):
         self.splits = np.split(data, data.shape[0], axis=0)[:100]
 
     def __getitem__(self, i):
-        data = self.splits[i][..., :-1].squeeze()
+        data = self.splits[i][..., :-1].squeeze().transpose(2,0,1)
         mask = self.splits[i][..., -1].squeeze()
         return tensor(data), tensor(mask)
 
