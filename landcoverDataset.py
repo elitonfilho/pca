@@ -11,7 +11,7 @@ class LandCoverDataset(Dataset):
     def __init__(self, path):
         super().__init__()
         data = np.load(Path(path))
-        self.splits = np.split(data, data.shape[0], axis=0)[:100]
+        self.splits = np.split(data, data.shape[0], axis=0)
 
     def __getitem__(self, i):
         data = self.splits[i][..., :-1].squeeze().transpose(2,0,1)
